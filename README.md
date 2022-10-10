@@ -1,6 +1,9 @@
 # Proyecto Biocolores
 Presentación de [Biocolores Wikidata](https://docs.google.com/presentation/d/1S_BmvXSfDW3HgZ4WSKolrpRMJb4gZgCEnFogwfDhRqI/edit?usp=sharing)
 
+![image](https://user-images.githubusercontent.com/17599614/194871659-b08924df-42d0-473a-aeac-feba09f10205.png)
+
+
 
 El proyecto Biocolores es una investigación desarrollada por el laboratorio de Bioinformación en el que realizamos pesquisas digitales para entender el color en los seres vivos a través de la información digital y herramientas informáticas. 
 Tengo un compromiso con la Ciencia Abierta por eso el [Hub de Biocolores](https://sites.google.com/a/ciencias.unam.mx/layla-michan/hub-biocolores) que reune todos los recursos y colecciones del proyecto es de acceso abierto y aplicamos en medida de lo posible los principios COPE, FAIR, DORA y CREDIT.
