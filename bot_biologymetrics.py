@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
 from Bio import Entrez
 from Bio import Medline
 from datetime import date, timedelta
@@ -41,23 +42,20 @@ def get_dates() -> tuple:
     last_week_end_date_string = last_week_end_date.strftime('%Y/%m/%d')
     
     return last_week_start_date_string, last_week_end_date_string
-    
 
 
 
 
-def get_records(from_date: str, to_date: str) -> list:
+
+def get_records(term_search: str) -> list:
     '''
-    Obtiene la informacion de los registros creados en PubMed
-    sobre publicaciones de bibliometria entre las fechas
-    especificadas por ``from_date`` y ``to_date``.
+    Obtiene la informacion de los registros creados en PubMed que se obtienen
+    con ``term_search``.
     
     Parameters
     ----------
-    from_date : str
-        La fecha mas distante en la que se obtienen los registros.
-    to_date : str
-        La fecha mas cercana en la que se obtienen los registros.
+    term_search : str
+        adena del termino de busqueda.
     
     Returns
     -------
@@ -80,24 +78,20 @@ def get_records(from_date: str, to_date: str) -> list:
         posted_record_ids = set()
     
     #Se establece el parametro email de Entrez
-    Entrez.email = "A.N.Other@example.com"
-    
-    #Se define el termino de busqueda
-    query = '(altmetr*[Title] OR bibliometr*[Title] OR scientometr*[Title] OR bibliometrics[MeSH Terms]) \
-            AND (\"' + from_date + '\"[Date - Create] : \"' + to_date + '\"[Date - Create])'
+    Entrez.email = 'A.N.Other@example.com'
     
     #Se ejecute una búsqueda de Entrez y se obtiene un identificador a los resultados
-    handle = Entrez.esearch(db="pubmed", term=query, retmax=500)
+    handle = Entrez.esearch(db='pubmed', term=term_search, retmax=500)
     
     #Se analiza un archivo XML de NCBI Entrez Utilities en objetos de python
     record = Entrez.read(handle)
     
     #Se crea una lista con los ids que se obtienen
     #con la busqueda y que no se han publicado ya
-    id_list = [x for x in record["IdList"] if x not in posted_record_ids]
+    id_list = [x for x in record['IdList'] if x not in posted_record_ids]
     
     #Se obtienen los resultados de Entrez que son devueltos como un identificador
-    handle = Entrez.efetch(db="pubmed", id=id_list, rettype="medline", retmode="text")
+    handle = Entrez.efetch(db='pubmed', id=id_list, rettype='medline', retmode='text')
     
     #Se leen los registros de Medline desde el identificador y se guardan en una lista
     records = list(Medline.parse(handle))
@@ -108,16 +102,44 @@ def get_records(from_date: str, to_date: str) -> list:
 
 
 
-def tweet_records(records: list):
+def set_text(records: list) -> dict:
     '''
-    Publica tuits, con la etiqueta #biologymetrics, que contienen los nombres
-    de las publicaciones que estan en ``records`` y los enlaces electronicos 
-    a sus registros en PubMed.
-    
+    Obtiene de una lista con la informacion de registros de PubMed, un diccionario
+    cuyos valores son el texto que se publicara y cuyas llaves son los PMIDs asociados.
+
     Parameters
     ----------
     records : list
-        La informacion de los registros que se publicaran.
+        La informacion de los registros de PubMed.
+
+    Returns
+    -------
+    dict
+        Diccionario cuyas llaves son PMIDs y cuyos valores son cadenas
+        de la informacion que se publicara.
+
+    '''
+    
+    etiquetas = '#biologymetrics'
+    protocol_and_host = 'https://pubmed.ncbi.nlm.nih.gov/'
+    
+    return {record.get('PMID'):
+            etiquetas + '\n' + record.get('TI', '?') + '\n' + protocol_and_host + record.get('PMID') + '/'
+            for record in records}
+
+
+
+
+
+def tweet_records(record_dict: dict):
+    '''
+    Publica tuits con la informacion de los valores del diccionario y
+    escribe en los PMIDs asociados en un archivo.
+    
+    Parameters
+    ----------
+    records : dict
+        La informacion de los registros que se publicaran y sus PMIDs sociados.
     
     Returns
     -------
@@ -133,20 +155,16 @@ def tweet_records(records: list):
         access_token_secret = 'access_token_secret'
     )
     
-    #Se asignan cadenas que contendran las publicaciones
-    etiquetas = '#biologymetrics'
-    protocol_and_host = 'https://pubmed.ncbi.nlm.nih.gov/'
-    
     #Se crea un conjunto al que se agregara los ids de los registros publicados
     ids_registros_publicados = set()
     
     #Se publican los registros disponibles
-    for record in records:
+    for pmid, info in record_dict.items():
         try:
             client.create_tweet(
-                text = etiquetas + '\n' + record.get("TI") + '\n' + protocol_and_host + record.get("PMID") + '/'
+                text = info
             )
-            ids_registros_publicados.add(record.get("PMID"))
+            ids_registros_publicados.add(pmid)
         except:
             pass
     
@@ -158,18 +176,24 @@ def tweet_records(records: list):
 
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     
     #Se obtienen las cadenas de las fechas
     from_date, to_date = get_dates()
     
+    #Se define el termino de busqueda
+    term_search = '(altmetr*[Title] OR bibliometr*[Title] OR scientometr*[Title] OR bibliometrics[MeSH Terms]) \
+            AND (\"' + from_date + '\"[Date - Create] : \"' + to_date + '\"[Date - Create])'
+    
     #Se obtienen una lista con los registros que se publicaran
-    records = get_records(from_date, to_date)
+    records = get_records(term_search)
+    
+    #Se obtienen un diccionario con la informacion que se publicara
+    record_dict = set_text(records)
     
     #Se hacen los tuits si hay registros para publicar
     if records:
-        tweet_records(records)
-
+        tweet_records(record_dict)
 
 
 
