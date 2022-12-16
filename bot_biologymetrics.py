@@ -251,7 +251,7 @@ if __name__ == "__main__":
     post_records(record_dict)
 
     #Se publica en Twitter si hay registros para publicar
-    post_records(record_dict)
+    tweet_records(record_dict)
 
 
 
