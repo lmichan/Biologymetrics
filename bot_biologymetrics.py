@@ -209,14 +209,11 @@ def tweet_records(record_dict: dict):
     #Se crea un conjunto al que se agregara los ids de los registros publicados
     ids = set()
     
-    #y que no se han publicado ya
-    #[x for x in record['IdList'] if x not in posted_record_ids]
-    
     #Se publican los registros disponibles
     for pmid, info in record_dict.items():
         if pmid not in posted_record_ids:
             try:
-                client.create_tweet(info)
+                client.create_tweet(text=info)
                 ids.add(pmid)
             except:
                 pass
