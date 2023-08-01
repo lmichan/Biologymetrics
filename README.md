@@ -11,4 +11,5 @@ Un artículo bibliométrico o cienciométrico es aquel que utiliza información 
 
 Herramientas
 Anotaciones en hypothes.is: https://hypothes.is/users/lmichan?q=tag%3ABiologymetrics
+
 Bot: https://twitter.com/botmetria
